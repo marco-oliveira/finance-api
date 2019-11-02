@@ -3,12 +3,15 @@ package com.finance.api.resource;
 import com.finance.api.model.Category;
 import com.finance.api.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +29,7 @@ public class CategoryResource {
     }
 
     @PostMapping
-    private ResponseEntity<Category> create(@RequestBody Category category, HttpServletResponse response) {
+    private ResponseEntity<Category> create(@Valid @RequestBody Category category, HttpServletResponse response) {
         Category categorySaved = categoryRepository.save(category);
 
         URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri()
@@ -40,6 +43,6 @@ public class CategoryResource {
     @RequestMapping("/{id}")
     private Category findById(@PathVariable Long id){
         return categoryRepository.findById(id)
-                .orElse(null);
+                .orElseThrow(EntityNotFoundException::new);
     }
 }
