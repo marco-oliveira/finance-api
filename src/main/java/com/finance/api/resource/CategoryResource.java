@@ -28,21 +28,18 @@ public class CategoryResource {
         return categoryRepository.findAll();
     }
 
-    @PostMapping
-    private ResponseEntity<Category> create(@Valid @RequestBody Category category, HttpServletResponse response) {
-        Category categorySaved = categoryRepository.save(category);
-
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                .path("/{id}")
-                .buildAndExpand(categorySaved.getId()).toUri();
-        response.setHeader("Location", uri.toASCIIString());
-
-        return ResponseEntity.created(uri).body(categorySaved);
-    }
-
-    @RequestMapping("/{id}")
+    @GetMapping("/{id}")
     private Category findById(@PathVariable Long id){
         return categoryRepository.findById(id)
                 .orElseThrow(EntityNotFoundException::new);
+    }
+
+    @PostMapping
+    private ResponseEntity<Category> create(@Valid @RequestBody Category category, HttpServletResponse response) {
+        Category categorySaved = categoryRepository.save(category);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri()
+                .path("/{id}").buildAndExpand(categorySaved.getId()).toUri();
+        response.setHeader("Location", uri.toASCIIString());
+        return ResponseEntity.created(uri).body(categorySaved);
     }
 }
