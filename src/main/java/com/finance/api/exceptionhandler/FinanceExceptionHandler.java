@@ -3,6 +3,7 @@ package com.finance.api.exceptionhandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +39,7 @@ public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, errors, headers, HttpStatus.BAD_REQUEST, request);
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
+    @ExceptionHandler({ EntityNotFoundException.class, EmptyResultDataAccessException.class })
     protected ResponseEntity<Object> handleExceptionEntityNotFound(RuntimeException ex, WebRequest request) {
         String userMessage = messageSource.getMessage("notfound.message", null, Objects.requireNonNull(LocaleContextHolder.getLocaleContext()).getLocale());
         String devMessage = Arrays.toString(ex.getStackTrace());
