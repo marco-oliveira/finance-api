@@ -1,8 +1,10 @@
 package com.finance.api.resource;
 
+import com.finance.api.event.ResourceCreatedEvent;
 import com.finance.api.model.Category;
 import com.finance.api.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,9 @@ public class CategoryResource {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private ApplicationEventPublisher publisher;
+
     @GetMapping
     public List<Category> find() {
         return categoryRepository.findAll();
@@ -37,9 +42,7 @@ public class CategoryResource {
     @PostMapping
     private ResponseEntity<Category> create(@Valid @RequestBody Category category, HttpServletResponse response) {
         Category categorySaved = categoryRepository.save(category);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                .path("/{id}").buildAndExpand(categorySaved.getId()).toUri();
-        response.setHeader("Location", uri.toASCIIString());
-        return ResponseEntity.created(uri).body(categorySaved);
+        this.publisher.publishEvent(new ResourceCreatedEvent(this, response, category.getId()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(categorySaved);
     }
 }
