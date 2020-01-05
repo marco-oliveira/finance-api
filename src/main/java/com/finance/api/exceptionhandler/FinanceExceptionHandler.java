@@ -3,6 +3,7 @@ package com.finance.api.exceptionhandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        String userMessage = messageSource.getMessage("invalid.message", null, Objects.requireNonNull(LocaleContextHolder.getLocaleContext()).getLocale());
+        String userMessage = this.messageSource.getMessage("invalid.message", null, Objects.requireNonNull(Objects.requireNonNull(LocaleContextHolder.getLocaleContext()).getLocale()));
         String devMessage = ex.getCause().toString();
         List<Error> errors = Collections.singletonList(new Error(userMessage, devMessage));
         return handleExceptionInternal(ex, errors,headers, HttpStatus.BAD_REQUEST, request);
@@ -38,9 +39,9 @@ public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, errors, headers, HttpStatus.BAD_REQUEST, request);
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
+    @ExceptionHandler({ EntityNotFoundException.class, EmptyResultDataAccessException.class })
     protected ResponseEntity<Object> handleExceptionEntityNotFound(RuntimeException ex, WebRequest request) {
-        String userMessage = messageSource.getMessage("notfound.message", null, Objects.requireNonNull(LocaleContextHolder.getLocaleContext()).getLocale());
+        String userMessage = this.messageSource.getMessage("notfound.message", null, Objects.requireNonNull(Objects.requireNonNull(LocaleContextHolder.getLocaleContext()).getLocale()));
         String devMessage = Arrays.toString(ex.getStackTrace());
         List<Error> errors = Collections.singletonList(new Error(userMessage, devMessage));
         return handleExceptionInternal(ex, errors, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
@@ -49,7 +50,7 @@ public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
     private List<Error> createListError(BindingResult bindingResult) {
         List<Error> errors = new ArrayList<>();
         for (FieldError fieldError : bindingResult.getFieldErrors()) {
-            String userMessage = messageSource.getMessage(fieldError, Objects.requireNonNull(LocaleContextHolder.getLocaleContext()).getLocale());
+            String userMessage = this.messageSource.getMessage(fieldError, Objects.requireNonNull(Objects.requireNonNull(LocaleContextHolder.getLocaleContext()).getLocale()));
             String devMessage = fieldError.toString();
             errors.add(new Error(userMessage, devMessage));
         }
@@ -58,8 +59,8 @@ public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
 
     public static class Error {
 
-        private String userMessage;
-        private String devMessage;
+        private final String userMessage;
+        private final String devMessage;
 
         public Error(String userMessage, String devMessage) {
             this.userMessage = userMessage;
@@ -67,11 +68,11 @@ public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
         }
 
         public String getUserMessage() {
-            return userMessage;
+            return this.userMessage;
         }
 
         public String getDevMessage() {
-            return devMessage;
+            return this.devMessage;
         }
     }
 }
