@@ -3,6 +3,7 @@ package com.finance.api.resource;
 import com.finance.api.event.ResourceCreatedEvent;
 import com.finance.api.model.Billing;
 import com.finance.api.repository.BillingRepository;
+import com.finance.api.service.BillingService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +19,13 @@ import java.util.List;
 public class BillingResource {
 
     private final BillingRepository billingRepository;
-
     private final ApplicationEventPublisher publisher;
+    private final BillingService billingService;
 
-    public BillingResource(BillingRepository billingRepository, ApplicationEventPublisher publisher) {
+    public BillingResource(BillingRepository billingRepository, ApplicationEventPublisher publisher, BillingService billingService) {
         this.billingRepository = billingRepository;
         this.publisher = publisher;
+        this.billingService = billingService;
     }
 
     @GetMapping
@@ -39,7 +41,7 @@ public class BillingResource {
 
     @PostMapping
     public ResponseEntity<Billing> create(@Valid @RequestBody Billing billing, HttpServletResponse response) {
-        Billing billingSaved = this.billingRepository.save(billing);
+        Billing billingSaved = this.billingService.save(billing);
         this.publisher.publishEvent(new ResourceCreatedEvent(this, response, billingSaved.getId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(billingSaved);
     }
