@@ -1,8 +1,9 @@
 package com.finance.api.exceptionhandler;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,11 @@ import java.util.*;
 @ControllerAdvice
 public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
 
-    @Autowired
-    private MessageSource messageSource;
+    private final MessageSource messageSource;
+
+    public FinanceExceptionHandler(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
@@ -45,6 +49,14 @@ public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
         String devMessage = Arrays.toString(ex.getStackTrace());
         List<Error> errors = Collections.singletonList(new Error(userMessage, devMessage));
         return handleExceptionInternal(ex, errors, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }
+
+    @ExceptionHandler({ DataIntegrityViolationException.class})
+    protected ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
+        String userMessage = this.messageSource.getMessage("operation.denied.message", null, Objects.requireNonNull(Objects.requireNonNull(LocaleContextHolder.getLocaleContext()).getLocale()));
+        String devMessage = ExceptionUtils.getRootCauseMessage(ex);
+        List<Error> errors = Collections.singletonList(new Error(userMessage, devMessage));
+        return handleExceptionInternal(ex, errors, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 
     private List<Error> createListError(BindingResult bindingResult) {

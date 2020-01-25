@@ -1,6 +1,7 @@
 package com.finance.api.model;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -19,6 +20,8 @@ public class Billing {
 
     @Column(name = "payment_date")
     private LocalDate paymentDate;
+
+    private BigDecimal value;
 
     private String note;
 
@@ -63,6 +66,14 @@ public class Billing {
 
     public void setPaymentDate(LocalDate paymentDate) {
         this.paymentDate = paymentDate;
+    }
+
+    public BigDecimal getValue() {
+        return this.value;
+    }
+
+    public void setValue(BigDecimal value) {
+        this.value = value;
     }
 
     public String getNote() {
