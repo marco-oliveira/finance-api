@@ -3,6 +3,7 @@ package com.finance.api.resource;
 import com.finance.api.event.ResourceCreatedEvent;
 import com.finance.api.model.Billing;
 import com.finance.api.repository.BillingRepository;
+import com.finance.api.repository.filter.BillingFilter;
 import com.finance.api.service.BillingService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -29,8 +30,8 @@ public class BillingResource {
     }
 
     @GetMapping
-    public List<Billing> find() {
-        return this.billingRepository.findAll();
+    public List<Billing> find(BillingFilter billingFilter) {
+        return this.billingRepository.filter(billingFilter);
     }
 
     @GetMapping("/{id}")
