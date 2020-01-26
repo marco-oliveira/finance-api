@@ -19,7 +19,10 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 @ControllerAdvice
 public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
@@ -47,7 +50,7 @@ public class FinanceExceptionHandler  extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ EntityNotFoundException.class, EmptyResultDataAccessException.class })
     protected ResponseEntity<Object> handleExceptionEntityNotFound(RuntimeException ex, WebRequest request) {
         String userMessage = this.messageSource.getMessage("notfound.message", null, Objects.requireNonNull(Objects.requireNonNull(LocaleContextHolder.getLocaleContext()).getLocale()));
-        String devMessage = Arrays.toString(ex.getStackTrace());
+        String devMessage = ExceptionUtils.getRootCauseMessage(ex);
         List<Error> errors = Collections.singletonList(new Error(userMessage, devMessage));
         return handleExceptionInternal(ex, errors, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }

@@ -47,4 +47,10 @@ public class BillingResource {
         return ResponseEntity.status(HttpStatus.CREATED).body(billingSaved);
     }
 
+    @DeleteMapping("{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        this.billingRepository.deleteById(id);
+    }
+
 }
