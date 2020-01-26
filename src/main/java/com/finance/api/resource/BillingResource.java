@@ -6,6 +6,8 @@ import com.finance.api.repository.BillingRepository;
 import com.finance.api.repository.filter.BillingFilter;
 import com.finance.api.service.BillingService;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/billings")
@@ -30,8 +31,8 @@ public class BillingResource {
     }
 
     @GetMapping
-    public List<Billing> find(BillingFilter billingFilter) {
-        return this.billingRepository.filter(billingFilter);
+    public Page<Billing> find(BillingFilter billingFilter, Pageable pageable) {
+        return this.billingRepository.filter(billingFilter, pageable);
     }
 
     @GetMapping("/{id}")

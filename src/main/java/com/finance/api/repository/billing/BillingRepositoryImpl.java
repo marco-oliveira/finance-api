@@ -3,6 +3,9 @@ package com.finance.api.repository.billing;
 import com.finance.api.model.Billing;
 import com.finance.api.repository.filter.BillingFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -21,7 +24,7 @@ public class BillingRepositoryImpl implements BillingRepositoryQuery {
     private EntityManager entityManager;
 
     @Override
-    public List<Billing> filter(BillingFilter billingFilter) {
+    public Page<Billing> filter(BillingFilter billingFilter, Pageable pageable) {
         CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
         CriteriaQuery<Billing> criteria = builder.createQuery(Billing.class);
         Root<Billing> root = criteria.from(Billing.class);
@@ -31,7 +34,9 @@ public class BillingRepositoryImpl implements BillingRepositoryQuery {
         criteria.where(predicates);
 
         TypedQuery<Billing> query = this.entityManager.createQuery(criteria);
-        return query.getResultList();
+        createConstraintsForPagination(query, pageable);
+
+        return new PageImpl<>(query.getResultList(), pageable, getTotalPage(billingFilter));
     }
 
     private Predicate[] createConstraints(BillingFilter billingFilter, CriteriaBuilder builder, Root<Billing> root) {
@@ -57,5 +62,25 @@ public class BillingRepositoryImpl implements BillingRepositoryQuery {
 
     private String getLikeWithParameter(String param) {
         return "%" + param + "%";
+    }
+
+    private void createConstraintsForPagination(TypedQuery<Billing> query, Pageable pageable) {
+        int pageNumber = pageable.getPageNumber();
+        int pageSize = pageable.getPageSize();
+        int firstRegisterPage = pageNumber * pageSize;
+        query.setFirstResult(firstRegisterPage);
+        query.setMaxResults(pageSize);
+    }
+
+    private Long getTotalPage(BillingFilter billingFilter) {
+        CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> criteria = builder.createQuery(Long.class);
+        Root<Billing> root = criteria.from(Billing.class);
+
+        Predicate[] predicates = createConstraints(billingFilter, builder, root);
+        criteria.where(predicates);
+
+        criteria.select(builder.count(root));
+        return this.entityManager.createQuery(criteria).getSingleResult();
     }
 }
